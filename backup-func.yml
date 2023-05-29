@@ -1,0 +1,3 @@
+- hosts: mysql
+  roles:
+    - backup-functions

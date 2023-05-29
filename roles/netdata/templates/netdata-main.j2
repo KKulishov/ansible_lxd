@@ -1,0 +1,51 @@
+[global]
+        run as user = root
+        web files owner = root
+        web files group = netdata
+        hostname = {{ hostname }}
+        access log = none
+{% if ansible_virtualization_type == 'lxc' and not netdata_force_host_system %}
+        memory mode = none
+        history = 300
+{% else %}
+        memory mode = {{ netdata_memory_mode }}
+        page cache size = {{ netdata_page_cache_size }}
+{% if netdata_memory_mode == 'dbengine' %}
+        dbengine multihost disk space = {{ netdata_dbengine_multihost_disk_space }}
+{% endif %}
+{% if netdata_custom_params.global is defined and netdata_custom_params.global|length %}
+{% for param in netdata_custom_params.global %}
+{{ param.key | indent(8, True) }} = {{ param.value }}
+{% endfor %}
+{% endif %}
+{% endif %}
+[health]
+        enabled = no
+[statsd]
+        enabled = no
+[plugins]
+{% if netdata_plugins_default is defined and netdata_plugins_default|length %}
+{% for key, value in netdata_plugins_default.items() %}
+{{ key|indent(8, True) }} = {{ value }}
+{% endfor %}
+{% endif %}
+{% if ansible_virtualization_type == 'lxc' and not netdata_force_host_system %}
+{% if netdata_plugins_lxc is defined and netdata_plugins_lxc|length %}
+{% for key, value in netdata_plugins_lxc.items() %}
+{{ key|indent(8, True) }} = {{ value }}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% if netdata_plugins is defined and netdata_plugins|length %}
+{% for key, value in netdata_plugins.items() %}
+{{ key|indent(8, True) }} = {{ value }}
+{% endfor %}
+{% endif %}
+{% if netdata_custom_plugin_params is defined and netdata_custom_plugin_params|length %}
+{% for plugin in netdata_custom_plugin_params %}
+[plugin:{{ plugin.name }}]
+{% for item in plugin.params %}
+{{ item.param|indent(8, True) }} = {{ item.value }}
+{% endfor %}
+{% endfor %}
+{% endif %}

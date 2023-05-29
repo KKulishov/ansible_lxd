@@ -1,0 +1,5 @@
+- hosts: mysql
+  roles:
+    - pre_install
+    - mysql
+    

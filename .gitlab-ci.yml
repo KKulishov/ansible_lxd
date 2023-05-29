@@ -1,0 +1,65 @@
+stages:
+  - create_vhost 
+
+
+create vhost apache php7.4:
+  stage: create_vhost
+  script:
+    - echo "${PRIVATE_KEY}" > "$(pwd)/private"
+    - chmod -v 700 $(pwd)/private
+    - echo $VAULT_PASS > .pass
+    - ansible-playbook -i hosts_lxc.ini --private-key $(pwd)/private apache_php7.4_conf.yml --vault-id devops@.pass
+  only:
+    refs:
+      - master    
+  when: manual
+
+create vhost apache php8.0:
+  stage: create_vhost
+  script:
+    - echo "${PRIVATE_KEY}" > "$(pwd)/private"
+    - chmod -v 700 $(pwd)/private
+    - echo $VAULT_PASS > .pass
+    - ansible-playbook -i hosts_lxc.ini --private-key $(pwd)/private apache_php8.0_conf.yml --vault-id devops@.pass
+  only:
+    refs:
+      - master    
+  when: manual
+
+create vhost nginx: 
+  stage: create_vhost
+  script:
+    - echo "${PRIVATE_KEY}" > "$(pwd)/private"
+    - chmod -v 700 $(pwd)/private
+    - echo $VAULT_PASS > .pass
+    - ansible-playbook -i hosts_lxc.ini --private-key $(pwd)/private nginx_config.yml --vault-id devops@.pass
+  only:
+    refs:
+      - master    
+  when: manual
+
+create db user mysql:
+  stage: create_vhost
+  script:
+    - echo "${PRIVATE_KEY}" > "$(pwd)/private"
+    - chmod -v 700 $(pwd)/private
+    - echo $VAULT_PASS > .pass
+    - ansible-playbook -i hosts_lxc.ini --private-key $(pwd)/private mysql_config.yml --vault-id devops@.pass
+  only:
+    refs:
+      - master    
+  when: manual
+
+Data entry in vaultwarden:
+  stage: create_vhost
+  script:
+    - echo $VAULT_PASS > .pass
+    - ansible-vault decrypt group_vars/prod/vault_db.yml --vault-id devops@.pass
+    - python3 .gitlab-ci/parser_yml.py 
+    - ansible-vault encrypt group_vars/prod/vault_db.yml --vault-id devops@.pass
+  only:
+    refs:
+      - master    
+  when: manual
+
+

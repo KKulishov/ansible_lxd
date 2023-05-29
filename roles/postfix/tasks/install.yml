@@ -1,0 +1,14 @@
+---
+
+- name: package installation
+  apt:
+    name: "{{ postfix_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 86400
+
+- name: service enabled check
+  service:
+    name: postfix
+    enabled: yes
+    state: started

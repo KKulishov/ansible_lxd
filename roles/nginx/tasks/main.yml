@@ -1,0 +1,71 @@
+- name: Set timezone
+  timezone:
+    name: Europe/Moscow
+    
+- name: Install Nginx
+  ansible.builtin.apt:
+    name: "{{ item }}" 
+    state: "latest"
+    update_cache: true
+  with_items:
+    - nginx
+    - certbot
+    - python3-certbot-nginx
+
+- name: Copy nginx config files
+  copy:
+    src: "files/nginx/nginx.conf.j2"
+    dest: "/etc/nginx/nginx.conf"
+    owner: "root"
+    group: "root"
+    mode: 0644
+
+- name: Copy stat_passwd config files
+  copy:
+    src: "files/nginx/stat.passwd"
+    dest: "/etc/nginx/stat.passwd"
+    owner: "root"
+    group: "root"
+    mode: 0644
+
+- name: "Create required directories in /etc/letsencrypt"
+  file:
+    path: "/var/www/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,g=rwx,o=rwx
+  with_items:
+    - letsencrypt
+
+- name: Copy nginx config custom.d
+  copy:
+    src: "files/nginx/custom.d"
+    dest: "/etc/nginx/"
+    owner: "root"
+    group: "root"
+    mode: 0644
+
+- name: Start nginx
+  systemd: 
+    name: nginx 
+    state: restarted
+    enabled: yes 
+
+
+## Debug ###
+#- name: Using template, create a remote file that contains all variables available
+#  template:
+#    src: templates/dump_variables
+#    dest: /tmp/ansible_variables
+#
+#- name: Debug get all variables in hosts
+#  fetch:
+#    src: /tmp/ansible_variables
+#    dest: "captured_variables/{{ ansible_hostname }}"
+#    flat: yes
+
+#- name: Clean up left over files
+#  file: 
+#    name: /tmp/ansible_variables
+#    state: absent    

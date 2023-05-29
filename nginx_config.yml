@@ -1,0 +1,5 @@
+- hosts: nginx
+  strategy: free
+  serial: "30%"
+  roles:
+    - nginx_config

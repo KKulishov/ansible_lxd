@@ -1,0 +1,58 @@
+{% if item.web_template == "bitrix" %}
+<VirtualHost *:8080>
+
+    ServerName {{ item.site }}
+{% if item.alias_domain %}
+    ServerAlias {{ item.alias_domain }}
+{% endif %}
+    ServerAdmin info@{{ item.site }}
+    DocumentRoot {{ item.docroot }}
+    #SuexecUserGroup {{ item.username }} {{ item.username }}
+    CustomLog /var/log/apache2/{{ item.site }}.log combined
+    ErrorLog /var/log/apache2/{{ item.site }}.error.log
+
+    IncludeOptional /etc/apache2/custom.d/custom_{{ item.site }}.conf*
+
+    <Directory {{ item.docroot }}>
+        AllowOverride All
+        Options +Includes -Indexes +ExecCGI
+        php_admin_value open_basedir none
+        php_admin_value date.timezone 'Europe/Moscow'
+        #php_admin_value sendmail_path "sendmail -t -f info@{{ item.site }}"
+        php_admin_value sendmail_path "msmtp -t -i -f info@{{ item.site }}"
+        php_admin_value max_input_vars '10000'
+        php_admin_value mbstring.func_overload '0'
+        php_admin_value mbstring.internal_encoding 'utf-8'
+        php_admin_value upload_max_filesize '20M'
+        php_admin_value post_max_size '20M'
+        php_admin_value pcre.recursion_limit '100000'
+        php_admin_value opcache.max_accelerated_files '100000'
+        php_admin_value opcache.memory_consumption '128'
+        php_admin_value opcache.interned_strings_buffer '8'
+        php_admin_value opcache.validate_timestamps '1'
+        php_admin_value opcache.revalidate_freq '0'
+        php_admin_value upload_tmp_dir "/home/{{ item.username }}/tmp"
+        php_admin_value session.save_path "/home/{{ item.username }}/tmp"
+    </Directory>
+    <Directory {{ item.docroot }}/stats>
+        AllowOverride All
+    </Directory>
+
+{% if item.ssl %}
+    <IfModule mod_rewrite.c>
+		#Nginx should have "proxy_set_header HTTPS YES;" in location
+		RewriteEngine On
+		RewriteCond %{HTTP:HTTPS} =YES
+		RewriteRule .* - [E=HTTPS:on,L]
+	</IfModule>
+{% endif %}    
+
+    <IfModule mpm_itk_module>
+        AssignUserId {{ item.username }} {{ item.username }}
+    </IfModule>
+
+    <IfModule itk.c>
+        AssignUserID {{ item.username }} {{ item.username }}
+    </IfModule>
+</VirtualHost>
+{% endif %}

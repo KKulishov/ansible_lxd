@@ -1,0 +1,12 @@
+---
+
+- name: Set timezone
+  timezone:
+    name: Europe/Moscow
+
+- name: install
+  include_tasks: install.yml
+  when: postfix_setup == "full"
+
+- name: configure
+  import_tasks: configure.yml

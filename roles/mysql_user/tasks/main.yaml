@@ -1,0 +1,37 @@
+- name: prepare databases and users (focal)
+  block:
+    - name: create databases
+      mysql_db:
+        name: "{{ item.db_name }}"
+        #collation: "{{ item.collation | default('utf8_unicode_ci') }}"
+        #encoding: "{{ item.encoding | default('utf8') }}"
+        collation: "{{ item.collation }}"
+        encoding: "{{ item.encoding }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        state: present
+      loop: "{{ database_project }}"
+      no_log: True
+    - name: create users
+      mysql_user:
+        name: "{{ item.db_user }}"
+        password: "{{ item.db_pass }}"
+        host: "%"
+        priv: "{{ item.db_name ~ '.*:ALL,GRANT' }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        state: present
+      loop: "{{ database_project }}"
+      no_log: True
+  when: ansible_distribution_release == 'focal'
+
+
+## todo test create user for mysql exporter
+#- name: Add Netdata MySQL user
+#  mysql_user:
+#    name: "{{ item.username }}"
+#    update_password: "{{ item.password }}" 
+#    host: "%"
+#    priv: '*.*:PROCESS,REPLICATION CLIENT'
+#    login_unix_socket: /var/run/mysqld/mysqld.sock
+#    state: present
+#  loop: "{{ myslqexporter }}"
+#  no_log: True

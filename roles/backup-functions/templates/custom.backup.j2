@@ -1,0 +1,54 @@
+#!/bin/bash
+. /usr/local/include/osshelp/backup-functions.sh
+
+cbver=1.01
+# general options
+backup_dir='/backup'
+rclone_storage='selectel:rusdedic1'
+local_days=0
+remote_backups_daily=4
+remote_backups_weekly=2
+remote_backups_monthly=1
+
+# changed minimum_free_space_percent https://oss.help/110334-13
+minimum_free_space_percent=7
+
+# functions options, excludes, etc
+tar_exclude=(--exclude=*/*/current/public/bitrix/backup/*)
+tar_exclude+=(--exclude=*/*/current/public/bitrix/cache/*)
+tar_exclude+=(--exclude=*/*/current/public/bitrix/managed_cache/*)
+tar_exclude+=(--exclude=*/test.*/*)
+tar_exclude+=(--exclude=*/dev.*/*)
+tar_exclude+=(--exclude=*/rc.*/*)
+tar_exclude+=(--exclude=tmp/*)
+tar_exclude+=(--exclude=*/*/tmp/*)
+archiver_opts=(-p4)
+rclone_sync_opts=(--swift-chunk-size 100G)
+stderr_exclude='(File removed before we read it|file changed as we read it|socket ignored)'
+split_file_size='4086m'
+
+# main functions
+function make_backup() {
+   show_notice "Backup process started..."
+    test -d "${backup_dir}" && clean_dir "${backup_dir}" "${local_days}"
+
+    check_free_space "${backup_dir}" && {
+        mysql_dump_all "${backup_dir}/${current_date:?}/db"
+        compress_dir /etc "${backup_dir}/$current_date/etc.tar.${compress_ext:?}"
+
+        for cur_dir in /home/*; do
+            test -d "${cur_dir}" || continue;
+            compress_dir "${cur_dir}" "$backup_dir/$current_date/${cur_dir##/*/}.tar.$compress_ext"
+        done
+        save_backup_size "${backup_dir}/${current_date}"
+    }
+}
+
+function upload_backup() {
+    show_notice "Upload process started..."
+    rclone_sync "${backup_dir}/${current_date}" "${rclone_storage}/${type}/${current_date}"
+    rclone_purge "${rclone_storage}/${type}" "${remote_backups}"
+    show_notice "Upload process ended."
+}
+
+main "${@}"

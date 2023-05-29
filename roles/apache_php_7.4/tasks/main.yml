@@ -1,0 +1,73 @@
+- name: Set timezone
+  timezone:
+    name: Europe/Moscow
+
+- name: "Installing php apache2 and php7.4"
+  apt:
+    name: 
+      - php7.4
+      - php7.4-xml
+      - php7.4-gd
+      - php7.4-mbstring
+      - php7.4-mysql
+      - php7.4-pdo
+      - php7.4-cli
+      - php7.4-json
+      - libapache2-mod-php7.4
+      - php7.4-mysqli
+      - php7.4-dom
+      - php7.4-zip
+      - php7.4-curl
+      - php7.4-gmp
+      - php7.4-intl
+      - apache2
+      - apache2-utils
+      - libapache2-mpm-itk
+      - msmtp
+    state: "latest"
+    update_cache: true
+
+- name: remove default vhost in sites-enabled
+  file:
+    path: "/etc/apache2/sites-enabled/000-default.conf"
+    state: absent
+  notify: restart apache
+
+- name: enable Apache mods
+  file:
+    src: "/etc/apache2/mods-available/{{ item }}"
+    dest: "/etc/apache2/mods-enabled/{{ item }}"
+    state: link
+  with_items: 
+    - rewrite.load
+    - remoteip.load
+  notify: restart apache  
+
+- name: Copy apache2 folder
+  copy:
+    src: "files/apache2/"
+    dest: "/etc/apache2/"
+
+- name: Creates the php file
+  template: 
+    src: apache_php.ini.j2
+    dest: /etc/php/7.4/apache2/php.ini
+
+## описать модуль remoteip для опеределения настоящего ip
+- name: Remoteip configuration 
+  block:
+  - name: Conf remoteip
+    template:
+      src: remoteip.conf.j2
+      dest: /etc/apache2/mods-available/remoteip.conf
+    notify: restart apache          
+
+- name: Apache is started and enabled
+  service:
+    name: apache2
+    state: started
+    enabled: true
+
+- name: Install composer
+  shell: > 
+     wget -O /usr/local/sbin/composer https://getcomposer.org/download/2.5.0/composer.phar && chmod +x /usr/local/sbin/composer    

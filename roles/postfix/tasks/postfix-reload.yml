@@ -1,0 +1,33 @@
+---
+- name: configuration check
+  block:
+    - name: check postfix configuration
+      command: postfix check
+      ignore_errors: true
+      register: postfix_syntax_check
+      changed_when: false
+
+    - name: show warnings
+      debug:
+        msg: "{{ postfix_syntax_check.stderr }}"
+      when: "'warning' in postfix_syntax_check.stderr"
+
+    - name: Notify if bad syntax
+      assert:
+        that:
+          - "'warning' not in postfix_syntax_check.stderr"
+        fail_msg: "Postfix configuration check failed. You should check debug information above and fix the problem(s)."
+      when: "'warning' in postfix_syntax_check.stderr"
+
+    - name: Notify if fatal error
+      assert:
+        that:
+          - postfix_syntax_check.rc == 0
+        fail_msg: "Postfix configuration check failed. You should check role parameters and fix the problem(s)."
+
+    - name: reload postfix
+      service:
+        name: postfix
+        state: reloaded
+      when: postfix_syntax_check.rc == 0
+  when: not ansible_check_mode

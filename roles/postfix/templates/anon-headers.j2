@@ -1,0 +1,15 @@
+/^Subject: Cron \<(.+@.+)\> (.+)$/   REPLACE Subject: [{{ servername }}] Cron: $2 <$1>
+
+{% if is_relay or anon_headers %}
+{% raw %}/^\s*(Received: from)[^\n]*(.*)/ REPLACE $1 [127.0.0.1] (localhost [127.0.0.1])$2
+/^\s*Received: by (.*) \(Postfix, from userid (.*)\)$/ REPLACE Received: by ${1}
+/^\s*Received: by (.*) \(sSMTP sendmail emulation\)(.*)$/ REPLACE Received: by ${1}${2}
+
+/^\s*Mime-Version: 1.0.*/ REPLACE Mime-Version: 1.0
+/^\s*User-Agent/ IGNORE
+/^\s*X-Enigmail/ IGNORE
+/^\s*X-Mailer/ IGNORE
+/^\s*X-Originating-IP/ IGNORE
+/^\s*X-PHP-Originating-Script/ IGNORE
+{% endraw %}
+{% endif %}

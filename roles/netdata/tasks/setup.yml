@@ -1,0 +1,80 @@
+---
+- name: gather required facts
+  setup:
+    gather_subset: [min, virtual]
+  when: ansible_distribution_release is not defined or ansible_virtualization_type is not defined
+
+- name: install required packages
+  apt:
+    name:
+      - curl
+      - gnupg
+      - apt-transport-https
+    update_cache: true
+    cache_valid_time: 86400
+
+- name: install common packages
+  apt:
+    name:
+      - bash
+      - iproute2
+      - python-dnspython
+      - libmnl0
+      - netcat
+      - lm-sensors
+    update_cache: true
+    cache_valid_time: 86400
+
+- name: install hardware packages
+  apt:
+    name: lm-sensors
+    update_cache: true
+    cache_valid_time: 86400
+  notify: restart netdata service
+  when: physical
+
+- name: add pgp key
+  apt_key:
+    url: "https://packagecloud.io/netdata/netdata/gpgkey"
+    state: present
+
+- name: add main repo
+  apt_repository:
+    repo: "deb https://packagecloud.io/netdata/netdata/ubuntu/ {{ ansible_distribution_release }} main"
+    state: present
+    filename: netdata
+
+- name: install netdata
+  apt:
+    name: "netdata{{ '=' ~ netdata_version if netdata_version|length > 0 else '' }}"
+    update_cache: true
+    cache_valid_time: 86400
+    default_release: "{{ ansible_distribution_release }}"
+
+- name: create netdata.service.d directory
+  file:
+    path: /etc/systemd/system/netdata.service.d
+    state: directory
+    mode: '0755'
+
+- name: create netdata.service override
+  template:
+    src: netdata-override.j2
+    dest: /etc/systemd/system/netdata.service.d/override.conf
+  notify:
+    - reload netdata unit
+    - restart netdata service
+
+- name: logrotate config fix
+  lineinfile:
+    dest: /etc/logrotate.d/netdata
+    line: "          /bin/kill -HUP `pidof -c netdata 2>/dev/null` 2>/dev/null || true"
+    regexp: "^\\s+/bin/kill.+"
+
+- meta: flush_handlers
+
+- name: service check
+  service:
+    name: netdata
+    enabled: yes
+    state: started

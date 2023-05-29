@@ -1,0 +1,5 @@
+{% for items in upstream %}
+upstream {{ items.name_back }} {
+    server {{ items.ip_address }}:8080;
+}
+{% endfor %}

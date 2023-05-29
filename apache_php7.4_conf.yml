@@ -1,0 +1,6 @@
+- hosts: apache-php7-4
+  strategy: free
+  serial: "30%"
+  roles:
+    - users
+    - apache_php_7.4_conf

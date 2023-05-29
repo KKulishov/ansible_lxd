@@ -1,0 +1,7 @@
+- hosts: parents
+  roles:
+    - role: netdata
+      nginx_stat_url: 'http://status-rusdedic1.w6p.ru/nginx_status/format/json'
+      apache_stat_url: 'http://10.213.65.121:8081/server-status?auto'
+      apache_stat_php8: 'http://10.213.65.124:8081/server-status?auto'
+      netdata_force_all_plugins_installation: true

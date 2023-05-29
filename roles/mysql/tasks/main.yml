@@ -1,0 +1,72 @@
+- name: Set timezone
+  timezone:
+    name: Europe/Moscow
+
+- name: "Install mysql via apt"
+  ansible.builtin.apt:
+    name: "mysql-server"
+    state: "latest"
+    update_cache: true
+
+- name: "Install pymysql via apt"
+  ansible.builtin.apt:
+    name: "python3-pymysql" # необходим для работы модулей mysql
+    state: "latest"
+    update_cache: true
+
+- name: Generate new root password
+  command: openssl rand -hex 7 
+  register: mysql_new_root_pass
+  args:
+    creates: /root/.my.cnf 
+
+- name: Removes anonymous user account for localhost
+  mysql_user:
+    name: ''
+    host: localhost
+    state: absent
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  become_method: sudo
+  when: mysql_new_root_pass.changed
+
+- name: Remove test database
+  mysql_db: 
+    name: test 
+    state: absent
+    login_user: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  become_method: sudo
+  when: mysql_new_root_pass.changed
+
+- name: Update root password
+  mysql_user: 
+    name: root 
+    host: "{{ hostname }}" 
+    login_user: root
+    password: "{{ mysql_new_root_pass.stdout }}"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  become_method: sudo
+  vars:
+    hostname:
+      - '127.0.0.1'
+      - '::1'
+      - 'localhost'
+  when: mysql_new_root_pass.changed  
+
+- name: Create Mysql configuration file
+  template: 
+    src: mysqld.cnf.j2 
+    dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+
+- name: Create my.cnf
+  template: 
+    src: my.cnf.j2 
+    dest: /root/.my.cnf
+  when: mysql_new_root_pass.changed
+
+- name: restart mysql
+  systemd: 
+    name: mysql 
+    state: restarted
+    enabled: yes 

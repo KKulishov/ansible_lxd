@@ -1,0 +1,36 @@
+---
+
+postfix_setup: full
+hostname: "rusdedic1.webpractik.ru"
+servername: "rusdedic1.webpractik.ru"
+mydestination: 'localhost'
+mynetworks_default: '127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 10.213.65.0/24'
+mynetworks: ''
+interfaces: 'all'
+protocols: 'all'
+opendkim: false
+is_relay: false
+anon_headers: true
+header_checks: pcre:/etc/postfix/anon-headers.pcre
+postfix_disable_headers_replacement: false
+
+tls_params:
+  - {key: smtpd_use_tls, value: 'yes'}
+  - {key: smtp_tls_security_level, value: 'may'}
+  - {key: smtp_tls_loglevel, value: '2'}
+  - {key: smtpd_tls_cert_file, value: '/etc/ssl/certs/ssl-cert-snakeoil.pem'}
+  - {key: smtpd_tls_key_file, value: '/etc/ssl/private/ssl-cert-snakeoil.key'}
+  - {key: smtpd_tls_session_cache_database, value: 'btree:${data_directory}/smtpd_scache'}
+  - {key: smtp_tls_session_cache_database, value: 'btree:${data_directory}/smtp_scache'}
+  - {key: smtp_tls_CAfile, value: '/etc/ssl/certs/ca-certificates.crt'}
+
+postfix_myorigin:
+  file: ''
+  value: ''
+
+additional_params: []
+
+postfix_packages:
+  - postfix
+  - postfix-pcre
+  - mailutils

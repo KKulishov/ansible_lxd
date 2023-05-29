@@ -1,0 +1,72 @@
+ {% if item.web_template == "bitrix" %}
+   server {
+        listen     80;
+        server_name  {{ item.site }}{% if item.alias_domain %}, {{ item.alias_domain }} {% endif %}; 
+
+        access_log /var/log/nginx/{{ item.site }}.log geo;
+        error_log /var/log/nginx/{{ item.site }}_error.log warn;
+
+        include custom.d/letsencrypt.conf;
+        include custom.d/custom_{{ item.site }}.conf*;
+        set $backend http://{{ item.upstream }};
+
+{% if item.ssl %}
+        return 301 https://$host$request_uri;
+{% endif %}
+
+        root {{ item.docroot }};
+
+        location = /favicon.ico {
+            log_not_found off;
+            access_log off;
+        }
+
+        location ~ (/\.ht|/bitrix/modules|/bitrix/php_interface|/\.(.+)\.php) {
+            deny all;
+        }
+        location / {
+            proxy_pass $backend;
+            include custom.d/bitrix_header.conf;
+        }
+
+        location ~* \.(gif|jpg|jpeg|png|bmp|wmv|avi|mpg|mpeg|mp4|htm|html|js|css|swf|pdf|ico|txt|woff|xml)$ {
+            access_log off;
+            expires max;
+            try_files $uri @apache;
+        }
+
+        location @apache {
+            proxy_pass $backend;
+            include custom.d/bitrix_header.conf;
+        }
+    }
+{% elif item.web_template == "static" %}
+    server {
+        listen     80;
+        server_name  {{ item.site }}{% if item.alias_domain %}, {{ item.alias_domain }} {% endif %};
+
+        access_log /var/log/nginx/{{ item.site }}.log geo;
+        error_log /var/log/nginx/{{ item.site }}_error.log warn;
+
+        include custom.d/letsencrypt.conf;
+        include custom.d/custom_{{ item.site }}.conf*;
+        index index.html;
+        {% if item.ssl %}
+        return 301 https://{{ item.site }}$request_uri;
+        {% endif %}
+
+        root {{ item.docroot }};
+
+        location = /favicon.ico {
+            log_not_found off;
+            access_log off;
+        }
+
+        location ~* \.(gif|jpg|jpeg|png|bmp|wmv|avi|mpg|mpeg|mp4|htm|html|js|css|swf|pdf|ico|txt|woff|xml)$ {
+            access_log off;
+            expires max;
+            try_files $uri @apache;
+        }
+
+    }
+{% endif %}    

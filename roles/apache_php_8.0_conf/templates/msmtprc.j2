@@ -1,0 +1,5 @@
+account default
+logfile /var/log/msmtp_default.log
+host {{ item.smtp_server }}
+port {{ item.smtp_port }}
+auth off

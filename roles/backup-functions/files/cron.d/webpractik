@@ -1,0 +1,4 @@
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/vesta/bin"
+MAILTO=""
+
+00 2 * * * /usr/local/sbin/custom.backup

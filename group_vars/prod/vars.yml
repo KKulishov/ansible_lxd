@@ -1,0 +1,33 @@
+# словарь с переменными для ролей 
+# mysql_user , nginx_conf, apache_conf 
+# на сонове описаных переменных создются в контейнерах vhost
+# а так же пользователи , секреты для БД и опсиание храниться в vault_db.yml 
+
+projects:
+  - username: test
+    site: test.w6p.ru
+    alias_domain: www.test.w6p.ru, test4.w6p.ru
+    ssl: true
+    upstream: apache-php8
+    docroot: /home/test/prod/test.ru/current/public
+    web_template: bitrix
+    uid: 1001
+    gid: 1001
+  - username: test1
+    site: test1.w6p.ru
+    alias_domain: 
+    ssl: true
+    upstream: apache-php7-4
+    docroot: /home/test1/prod/test1.ru/current/public
+    web_template: bitrix
+    uid: 1002
+    gid: 1002
+  - username: test2
+    site: test2.w6p.ru
+    alias_domain: 
+    ssl: true  
+    upstream: apache-php7-4
+    docroot: /home/test2/prod/test2.ru/current/public
+    web_template: bitrix
+    uid: 1003
+    gid: 1003

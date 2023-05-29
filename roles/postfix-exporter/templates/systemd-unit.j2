@@ -1,0 +1,18 @@
+[Unit]
+Description=Postfix Exporter
+After=postfix.service
+
+[Service]
+Type=forking
+User={{ postfix_exporter_service_user|default('postfix') }}
+{% if postfix_exporter_service_group is defined %}Group={{ postfix }}
+{% endif %}
+RuntimeDirectory={{ postfix_exporter_service_name }}
+RuntimeDirectoryMode=0755
+EnvironmentFile=/etc/default/{{ postfix_exporter_service_name }}
+PIDFile=/var/run/{{ postfix_exporter_service_name }}/pid
+ExecStart=/sbin/start-stop-daemon -Sbmp /var/run/{{ postfix_exporter_service_name }}/pid -x /usr/local/bin/postfix_exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

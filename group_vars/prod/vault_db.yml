@@ -1,0 +1,38 @@
+database_project:
+  - project: test
+    db_host: mysql
+    db_name: test
+    db_user: test
+    db_pass: test123
+    collation: utf8_unicode_ci
+    encoding: utf8
+  - project: test1
+    db_host: mysql
+    db_name: test1
+    db_user: test1
+    db_pass: test123
+    collation: utf8_unicode_ci
+    encoding: utf8
+  - project: test2
+    db_host: mysql
+    db_name: test2
+    db_user: test2
+    db_pass: test123
+    collation: utf8_unicode_ci
+    encoding: utf8
+  - project: bublikova
+    db_host: mysql
+    db_name: bublikova_db
+    db_user: bublikova_user
+    db_pass: 'xxxxxx'
+    collation: utf8_unicode_ci
+    encoding: utf8
+
+myslqexporter:
+  - username: netdata
+    password: xxxxxxxxxx
+
+
+rclone:
+  - name_user: xxxx_xxxxx
+    secretkey: xxxxxxxxxxx

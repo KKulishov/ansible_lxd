@@ -1,0 +1,7 @@
+---
+- name: reload netdata unit
+  systemd:
+    daemon_reload: yes
+
+- name: restart netdata service
+  include_tasks: restart_netdata.yml

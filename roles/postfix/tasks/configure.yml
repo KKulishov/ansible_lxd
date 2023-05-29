@@ -1,0 +1,31 @@
+---
+
+- name: prepare main configuration file
+  template:
+    src: main.j2
+    dest: /etc/postfix/main.cf
+  notify: postfix reload
+
+- name: postfix transport adjustment
+  template:
+    src: transport.j2
+    dest: /etc/postfix/transport
+  when: relayhost is defined
+  notify: postfix reload
+
+- name: configure headers replacement
+  template:
+    src: anon-headers.j2
+    dest: /etc/postfix/anon-headers.pcre
+  when: not postfix_disable_headers_replacement
+  notify: postfix reload
+
+- name: prepare myorigin file
+  copy:
+    dest: "{{ postfix_myorigin.file }}"
+    content: "{{ postfix_myorigin.value | mandatory }}"
+    mode: 0644
+    owner: root
+    group: root
+  when: postfix_myorigin.file | length > 0
+  notify: postfix reload

@@ -1,0 +1,92 @@
+- name: Create upstream
+  template:
+    src: upstreams.conf.j2
+    dest: /etc/nginx/conf.d/upstreams.conf
+  loop: "{{ upstream }}"
+
+- name: Create nginx vhosts
+  template:
+     src: vhost.j2
+     dest: /etc/nginx/sites-enabled/{{ item.site }}.conf
+  loop: "{{ projects | list }}" 
+  no_log: True 
+
+- name: check nginx configuration
+  command: nginx -t
+  ignore_errors: true
+  register: nginx_syntax_check
+  changed_when: false
+
+#- name: DEBUG | Output result 
+#  debug:
+#    var: nginx_syntax_check
+
+- name: show errors
+  debug:
+    msg: "{{ nginx_syntax_check.stderr }}"
+  when: nginx_syntax_check.rc != 0
+
+- name: reload nginx
+  systemd: name=nginx state=reloaded
+  when: nginx_syntax_check.rc == 0
+
+- name: Create cert poddomen
+  shell: > 
+      if ! [ -d "/etc/letsencrypt/live/{{ item.site }}" ]; then
+      /usr/bin/echo "domains = {{ item.site }}, {{ item.alias_domain }}" > /tmp/'{{ item.site }}'.ini;
+      fi
+  loop: "{{ projects }}"
+  no_log: True
+
+- name: Create certificate
+  shell: > 
+      if ! [ -d "/etc/letsencrypt/live/{{ item.site }}" ]; then
+      /usr/bin/certbot certonly --nginx --email support@webpractik.ru --agree-tos --webroot-path=/var/www/letsencrypt -c /tmp/'{{ item.site }}'.ini;
+      fi
+  loop: "{{ projects }}"
+  when: "{{ item.ssl }} == true"
+
+- name: Add http nginx configuration
+  template: 
+    src: vhost_ssl.j2
+    dest: /etc/nginx/sites-enabled/{{ item.site }}.ssl.conf 
+    owner: www-data 
+    group: www-data 
+    mode: 0644
+  loop: "{{ projects | list }}"  
+  when: "{{ item.ssl }} == true"
+  no_log: True
+
+- name: Copy custom/conf conf nginx for vhost
+  block:
+  - name: copy custom  
+    copy:
+      src: "files/custom.d/"
+      dest: "/etc/nginx/custom.d/"
+    loop: "{{ projects }}"
+    no_log: True  
+  - name: copy htpasswd
+    copy: 
+      src: "htpasswd-demo"
+      dest: "/etc/nginx/"
+    no_log: True
+  - name: copy conf.d
+    copy:
+      src: "files/conf.d/"
+      dest: "/etc/nginx/conf.d/"
+    no_log: True
+
+- name: check nginx configuration
+  command: nginx -t
+  ignore_errors: true
+  register: nginx_syntax_check
+  changed_when: false
+
+- name: show errors
+  debug:
+    msg: "{{ nginx_syntax_check.stderr }}"
+  when: nginx_syntax_check.rc != 0
+
+- name: reload nginx
+  systemd: name=nginx state=reloaded
+  when: nginx_syntax_check.rc == 0

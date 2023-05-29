@@ -1,0 +1,55 @@
+- name: Preconfig block 
+  block:
+    - name: Create user
+      user:
+        name: "{{ item.username }}"
+        shell: /bin/bash
+        state: present
+        home: "/home/{{ item.username }}"
+        uid: "{{ item.uid }}"
+      loop: "{{ projects }}"
+      register: error 
+      no_log: True 
+    - name: Add group to remote server
+      group:
+        name: "{{ item.username }}"
+        gid: "{{ item.gid }}" 
+        state: present
+      loop: "{{ projects }}"
+      register: error
+      no_log: True        
+    - name: Install curl 
+      apt:
+        name: curl
+        update_cache: yes 
+      register: error  
+      ignore_errors: true
+    - name: Create folder user
+      file: 
+        path: "{{ item.docroot }}"
+        state: directory
+        owner: "{{ item.username }}"
+        group: "{{ item.username }}"
+        mode: 0775
+        recurse: yes
+      loop: "{{ projects }}"
+      no_log: True 
+    - name: Create tmp user for session
+      file: 
+        path: "/home/{{ item.username }}/tmp"
+        state: directory
+        owner: "{{ item.username }}"
+        group: "{{ item.username }}"
+        mode: 0775
+        recurse: yes
+      loop: "{{ projects }}"
+      no_log: True     
+  become: true
+  rescue: 
+    - name: Some error print
+      debug:
+        var: error
+  always:
+    - name: always tasks
+      debug:
+        msg: "I run always" 

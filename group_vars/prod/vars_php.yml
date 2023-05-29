@@ -1,0 +1,9 @@
+#Переменные для ролей apache и apache_conf
+
+msmtp:
+  - smtp_server: 10.213.65.213
+    smtp_port: 25  
+
+php_param:
+  - pcre.recursion_limit: 100000
+    date.timezone: 'Europe/Moscow'

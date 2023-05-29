@@ -1,0 +1,39 @@
+smtpd_banner = $myhostname ESMTP
+biff = no
+append_dot_mydomain = no
+readme_directory = no
+
+{% for item in tls_params %}
+{{ item.key }} = {{ item.value }}
+{% endfor %}
+
+{% for item in additional_params %}
+{{ item.key }} = {{ item.value }}
+{% endfor %}
+
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+myhostname = {{ hostname }}
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+mydestination = {{ mydestination }}
+mynetworks = {{ mynetworks_default }} {{ mynetworks }}
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = {{ interfaces }}
+inet_protocols = {{ protocols }}
+{% if postfix_myorigin.file is defined and postfix_myorigin.file|length %}
+myorigin = {{ postfix_myorigin.file }}
+{% endif %}
+
+{% if opendkim %}
+milter_default_action = accept
+milter_protocol = 2
+smtpd_milters = inet:localhost:8891
+non_smtpd_milters = inet:localhost:8891
+{% endif %}
+
+{% if not postfix_disable_headers_replacement %}
+smtp_header_checks = {{ header_checks }}
+{% endif %}
+
+{% if relayhost is defined %}transport_maps = texthash:/etc/postfix/transport{% endif %}

@@ -1,0 +1,7 @@
+# Переменные для nginx роли для определнеия имен upstream 
+
+upstream:
+  - name_back: apache-php7-4
+    ip_address: 10.213.65.121
+  - name_back: apache-php8  
+    ip_address: 10.213.65.124

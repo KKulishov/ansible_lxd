@@ -1,0 +1,2 @@
+- name: Install python for Ansible
+  shell: test -e /usr/bin/python3 || (apt update -y && apt install -y python3-minimal)

@@ -1,0 +1,5 @@
+- hosts: apache-php8
+  strategy: free
+  roles:
+    - users
+    - apache_php_8.0_conf

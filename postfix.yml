@@ -1,0 +1,4 @@
+- hosts: postfix
+  roles:
+    - postfix
+    - postfix-exporter

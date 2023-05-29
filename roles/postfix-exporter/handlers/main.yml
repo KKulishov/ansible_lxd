@@ -1,0 +1,9 @@
+---
+- name: reload postfix_exporter unit
+  systemd:
+    daemon_reload: yes
+
+- name: restart postfix_exporter service
+  systemd:
+    name: "{{ postfix_exporter_service_name }}"
+    state: restarted

@@ -1,0 +1,26 @@
+---
+- name: configuration check
+  block:
+    - name: check apache configuration
+      command: apachectl -t
+      ignore_errors: true
+      register: apache_syntax_check
+      changed_when: false
+
+    - name: show errors
+      debug:
+        msg: "{{ apache_syntax_check.stderr }}"
+      when: apache_syntax_check.rc != 0
+
+    - name: Notify if bad syntax
+      assert:
+        that:
+          - apache_syntax_check.rc == 0
+        fail_msg: "Apache configuration check failed. You should check debug information above and fix the problem(s)."
+
+    - name: restart apache
+      service:
+        name: apache2
+        state: restarted
+      when: apache_syntax_check.rc == 0
+  when: not ansible_check_mode

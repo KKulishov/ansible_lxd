@@ -1,0 +1,83 @@
+---
+- name: create dirs
+  file:
+    path: "{{ item.dst_dir }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ backup_functions_library }}"
+
+#- name: download library
+#  get_url:
+#    url: "{{ item.url }}"
+#    dest: "{{ item.dst_dir }}/{{ item.name }}"
+#    mode: "{{ item.mode }}"
+#    checksum: "{{ item.chksum }}"
+#  loop: "{{ backup_functions_library }}"
+#  when: not ansible_check_mode
+
+#- name: download template
+#  get_url:
+#    url: "{{ item.url }}"
+#    dest: "{{ item.dst_dir }}/{{ item.name }}"
+#    mode: "{{ item.mode }}"
+#    checksum: "{{ item.chksum }}"
+#  loop: "{{ backup_functions_template }}"
+#  when:
+#    - add_template
+#    - not ansible_check_mode
+
+#- name: install backup scripts from files/backup
+#  copy:
+#    src: "{{ src_script_location }}"
+#    dest: "/usr/local/sbin/"
+#    owner: root
+#    group: root
+#    mode: '0700'
+#  when: install_backup_scripts
+
+- name: create dir for backups
+  file:
+    path: "{{ backup_dir }}"
+    state: directory
+    mode: "0700"
+    owner: root
+    group: root
+  when: create_backup_dir
+
+- name: install pbzip2&rclone
+  apt:
+    name: 
+      - pbzip2
+      - rclone
+    update_cache: true
+    install_recommends: no
+    cache_valid_time: 86400
+  when: install_pbzip2
+
+
+- name: set config backup
+  block:
+    - name: copy script library backup 
+      copy:
+        src: lib/backup-functions.sh
+        dest: "{{ item.dst_dir }}/{{ item.name }}"
+      loop: "{{ backup_functions_library }}"  
+    - name: set config rclone
+      template:
+        src: rclone.conf.j2
+        dest: /root/.config/rclone/rclone.conf  
+      loop: "{{ rclone }}"      
+      no_log: True
+    - name: set config custom.backup
+      template:
+        src: custom.backup.j2
+        dest: "/usr/local/sbin/custom.backup"  
+        mode: u=rwx,g=,o=
+      loop: "{{ rclone }}"
+      no_log: True  
+    - name: copy cron 
+      copy:
+        src: "cron.d/webpractik"
+        dest: "/etc/cron.d/webpractik" 
+        mode: '0644'
+      no_log: True  

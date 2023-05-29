@@ -1,0 +1,3 @@
+---
+- name: postfix reload
+  include_tasks: postfix-reload.yml

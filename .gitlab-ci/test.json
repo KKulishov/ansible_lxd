@@ -1,0 +1,21 @@
+{
+    "organizationId": "9176a30f-c1b1-4261-ad47-5946403eeb03",
+    "collectionIds": "8ce06304-3cd6-4b98-a777-615ef8bf0ec0",
+    "folderId": null,
+    "type": 1,
+    "name": "DB_test2",
+    "notes": "Some notes about this item.",
+    "favorite": false,
+    "fields": [],
+    "login": {
+        "uris": [],
+        "username": "test2",
+        "password": "test123",
+        "totp": "xxxxxxxxxxxxxxxx",
+        "notes": "mysql server 10.213.65.221 port 3306"
+    },
+    "secureNote": null,
+    "card": null,
+    "identity": null,
+    "reprompt": 0
+}

@@ -1,0 +1,83 @@
+- name: Set timezone
+  timezone:
+    name: Europe/Moscow
+
+- name: "Installing php apache2 and php8.1"
+  apt:
+    name:
+      - memcached
+      - php8.1
+      - php8.1-memcached
+      - php8.1-pgsql
+      - php8.1-memcache
+      - php8.1-xml
+      - php8.1-gd
+      - php8.1-mbstring
+      - php8.1-mysql
+      - php8.1-soap
+      - php8.1-cli
+      - libapache2-mod-php8.1
+      - php8.1-zip
+      - php8.1-redis
+      - php8.1-curl
+      - php8.1-gmp
+      - php8.1-intl
+      - mysql-client
+      - apache2
+      - apache2-utils
+      - libapache2-mpm-itk
+      - msmtp
+      - unzip
+    state: "latest"
+    update_cache: true
+
+- name: remove default vhost in sites-enabled
+  file:
+    path: "/etc/apache2/sites-enabled/000-default.conf"
+    state: absent
+  notify: restart apache
+
+- name: enable Apache mods
+  file:
+    src: "/etc/apache2/mods-available/{{ item }}"
+    dest: "/etc/apache2/mods-enabled/{{ item }}"
+    state: link
+  with_items: 
+    - rewrite.load
+    - remoteip.load
+    - php8.1.conf
+    - php8.1.load
+  notify: restart apache  
+
+- name: Copy apache2 folder
+  copy:
+    src: "files/apache2/"
+    dest: "/etc/apache2/"
+
+- name: Creates the php file
+  template: 
+    src: apache_php.ini.j2
+    dest: /etc/php/8.1/apache2/php.ini
+
+## описать модуль remoteip для опеределения настоящего ip
+- name: Remoteip configuration 
+  block:
+  - name: Conf remoteip
+    template:
+      src: remoteip.conf.j2
+      dest: /etc/apache2/mods-available/remoteip.conf
+    notify: restart apache          
+
+- name: Apache is started and enabled
+  service:
+    name: apache2
+    state: started
+    enabled: true
+
+- name: Install composer
+  shell: > 
+     wget -O /usr/local/sbin/composer https://getcomposer.org/download/2.5.8/composer.phar && chmod +x /usr/local/sbin/composer
+
+- name: Install aws-cli
+  shell: >
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscli.zip" && unzip awscli.zip && ./aws/install

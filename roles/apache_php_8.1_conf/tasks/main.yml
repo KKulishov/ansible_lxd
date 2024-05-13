@@ -1,0 +1,36 @@
+- name: Create apache2 vhosts
+  template:
+     src: vhost.j2
+     dest: /etc/apache2/sites-enabled/{{ item.site }}.conf
+  loop: "{{ projects | list }}"
+  no_log: True 
+
+- name: Copy custom conf apache2 for vhost
+  copy:
+    src: "files/custom.d/"
+    dest: "/etc/nginx/custom.d/"
+
+- name: check apache configuration
+  command: apachectl -t
+  ignore_errors: true
+  register: apache_syntax_check
+  changed_when: false
+
+- name: msmtp
+  template:
+     src: msmtprc.j2
+     dest: /etc/msmtprc
+  no_log: True
+
+#- name: DEBUG | Output result 
+#  debug:
+#    var: apache_syntax_check
+
+- name: show errors
+  debug:
+    msg: "{{ apache_syntax_check.stderr }}"
+  when: apache_syntax_check.rc != 0
+
+- name: reload apache
+  systemd: name=apache2 state=reloaded
+  when: apache_syntax_check.rc == 0

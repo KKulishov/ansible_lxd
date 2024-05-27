@@ -1,7 +1,7 @@
 {% if item.web_template == "bitrix" %}
 server {
   listen 443 ssl;
-  server_name {{ item.site }}{% if item.alias_domain %}, {{ item.alias_domain }} {% endif %};
+  server_name {{ item.site }}{% if item.alias_domain %} {{ item.alias_domain }} {% endif %};
   root {{ item.docroot }};
 
   access_log /var/log/nginx/{{ item.site }}.log geo;

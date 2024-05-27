@@ -28,6 +28,14 @@
     group: "root"
     mode: 0644
 
+- name: Copy htpasswdemo config files
+  copy:
+    src: "files/nginx/.htpasswdemo"
+    dest: "/etc/nginx/.htpasswdemo"
+    owner: "root"
+    group: "root"
+    mode: 0644
+
 - name: "Create required directories in /etc/letsencrypt"
   file:
     path: "/var/www/{{ item }}"

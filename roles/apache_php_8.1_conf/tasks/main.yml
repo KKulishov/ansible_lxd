@@ -34,3 +34,20 @@
 - name: reload apache
   systemd: name=apache2 state=reloaded
   when: apache_syntax_check.rc == 0
+
+
+- name: set php session_clear in cron
+  block:
+    - name: copy script library session_clear 
+      copy:
+        src: cron_session_clear.j2
+        dest: "/usr/local/sbin/custom.cron_session_clear"
+      mode: u=rwx,g=,o=  
+    - name: copy cron 
+      copy:
+        src: "cron.d/tasks"
+        dest: "/etc/cron.d/tasks" 
+        mode: '0644'
+      no_log: True 
+    - name: reload cron  
+      systemd: name=apache2 state=reloaded

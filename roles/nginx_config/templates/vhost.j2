@@ -1,7 +1,7 @@
  {% if item.web_template == "bitrix" %}
    server {
         listen     80;
-        server_name  {{ item.site }}{% if item.alias_domain %}, {{ item.alias_domain }} {% endif %}; 
+        server_name  {{ item.site }}{% if item.alias_domain %} {{ item.alias_domain }} {% endif %}; 
 
         access_log /var/log/nginx/{{ item.site }}.log geo;
         error_log /var/log/nginx/{{ item.site }}_error.log warn;

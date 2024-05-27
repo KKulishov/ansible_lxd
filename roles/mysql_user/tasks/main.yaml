@@ -21,7 +21,7 @@
         state: present
       loop: "{{ database_project }}"
       no_log: True
-  when: ansible_distribution_release == 'focal'
+  #when: ansible_distribution_release == 'focal'
 
 
 ## todo test create user for mysql exporter

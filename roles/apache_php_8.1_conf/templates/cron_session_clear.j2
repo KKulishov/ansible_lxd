@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Script for deleting old php-sessions
+
+for dir in /home/*/tmp; do
+  test -d "${dir}" && \
+    /usr/bin/nice -n19 /usr/bin/ionice -c2 -n7 find "${dir}" -ignore_readdir_race -mindepth 1 -maxdepth 2 -type f -name 'sess_*' -mtime +21 -delete
+    /usr/bin/nice -n19 /usr/bin/ionice -c2 -n7 find "${dir}" -ignore_readdir_race -mindepth 1 -maxdepth 2 -type f -name 'php*' -mtime +21 -delete
+done

@@ -2,6 +2,20 @@
   timezone:
     name: Europe/Moscow
 
+- name: "Installing pre install"
+  apt:
+    name: 
+      - ca-certificates
+      - apt-transport-https
+      - software-properties-common
+    state: "latest"
+    update_cache: true
+      
+- name: "Add repo ondrej"
+  apt_repository:
+    repo: 'ppa:ondrej/php'
+    update_cache: yes
+
 - name: "Installing php apache2 and php7.4"
   apt:
     name: 
